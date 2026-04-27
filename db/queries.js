@@ -335,7 +335,16 @@ async function deleteTask(db, taskId) {
  * Build the filter conditionally based on whether projectId was passed.
  */
 async function searchNotes(db, ownerId, tags, projectId) {
-  // TODO: implement searchNotes
+  const filter = {
+    ownerId,
+    tags: { $in: tags }
+  };
+  if (projectId) filter.projectId = projectId;
+
+  return await db.collection('notes')
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .toArray();
 }
 
 /**
@@ -372,7 +381,37 @@ async function searchNotes(db, ownerId, tags, projectId) {
  * $unwind turns a 1-element array into the element itself.
  */
 async function projectTaskSummary(db, ownerId) {
-  // TODO: implement projectTaskSummary
+  return await db.collection('tasks').aggregate([
+    { $match: { ownerId } },
+    {
+      $group: {
+        _id: '$projectId',
+        todo: { $sum: { $cond: [{ $eq: ['$status', 'todo'] }, 1, 0] } },
+        inProgress: { $sum: { $cond: [{ $eq: ['$status', 'in-progress'] }, 1, 0] } },
+        done: { $sum: { $cond: [{ $eq: ['$status', 'done'] }, 1, 0] } },
+        total: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'projects',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'project'
+      }
+    },
+    { $unwind: '$project' },
+    {
+      $project: {
+        _id: 1,
+        projectName: '$project.name',
+        todo: 1,
+        inProgress: 1,
+        done: 1,
+        total: 1
+      }
+    }
+  ]).toArray();
 }
 
 /**
@@ -404,7 +443,31 @@ async function projectTaskSummary(db, ownerId) {
  * you only want to look up 10 projects, not all of them.
  */
 async function recentActivityFeed(db, ownerId) {
-  // TODO: implement recentActivityFeed
+  return await db.collection('tasks').aggregate([
+    { $match: { ownerId } },
+    { $sort: { createdAt: -1 } },
+    { $limit: 10 },
+    {
+      $lookup: {
+        from: 'projects',
+        localField: 'projectId',
+        foreignField: '_id',
+        as: 'project'
+      }
+    },
+    { $unwind: '$project' },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        status: 1,
+        priority: 1,
+        createdAt: 1,
+        projectId: 1,
+        projectName: '$project.name'
+      }
+    }
+  ]).toArray();
 }
 
 // =============================================================================
