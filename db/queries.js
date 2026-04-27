@@ -258,8 +258,12 @@ async function addTaskTag(db, taskId, tag) {
  * Hint: $pull.
  */
 async function removeTaskTag(db, taskId, tag) {
-  // TODO: implement removeTaskTag
-  }
+  const result = await db.collection('tasks').updateOne(
+    { _id: taskId },
+    { $pull: { tags: tag } }
+  );
+  return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount };
+}
 
 /**
  * Query 11: toggleSubtask
@@ -288,7 +292,11 @@ async function removeTaskTag(db, taskId, tag) {
  * matched), and your $set path uses `subtasks.$.done`.
  */
 async function toggleSubtask(db, taskId, subtaskTitle, newDone) {
-  // TODO: implement toggleSubtask
+  const result = await db.collection('tasks').updateOne(
+    { _id: taskId, 'subtasks.title': subtaskTitle },
+    { $set: { 'subtasks.$.done': newDone } }
+  );
+  return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount };
 }
 
 /**
@@ -303,7 +311,8 @@ async function toggleSubtask(db, taskId, subtaskTitle, newDone) {
  * Hint: deleteOne.
  */
 async function deleteTask(db, taskId) {
-  // TODO: implement deleteTask
+  const result = await db.collection('tasks').deleteOne({ _id: taskId });
+  return { deletedCount: result.deletedCount };
 }
 
 /**
@@ -364,7 +373,6 @@ async function searchNotes(db, ownerId, tags, projectId) {
  */
 async function projectTaskSummary(db, ownerId) {
   // TODO: implement projectTaskSummary
-
 }
 
 /**
@@ -397,7 +405,6 @@ async function projectTaskSummary(db, ownerId) {
  */
 async function recentActivityFeed(db, ownerId) {
   // TODO: implement recentActivityFeed
- 
 }
 
 // =============================================================================
