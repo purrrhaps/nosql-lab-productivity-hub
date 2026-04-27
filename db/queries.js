@@ -106,7 +106,12 @@ async function listUserProjects(db, ownerId) {
  * Hint: insertOne again — just remember to add the defaults yourself.
  */
 async function createProject(db, projectData) {
-  // TODO: implement createProject
+  const result = await db.collection('projects').insertOne({
+    ...projectData,
+    archived: false,
+    createdAt: new Date()
+  });
+  return { insertedId: result.insertedId };
 }
 
 /**
@@ -125,7 +130,11 @@ async function createProject(db, projectData) {
  * Hint: updateOne with the $set operator.
  */
 async function archiveProject(db, projectId) {
-  // TODO: implement archiveProject
+  const result = await db.collection('projects').updateOne(
+    { _id: projectId },
+    { $set: { archived: true } }
+  );
+  return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount };
 }
 
 /**
@@ -146,7 +155,13 @@ async function archiveProject(db, projectId) {
  * the caller passed one. Then chain .sort({ priority: -1, createdAt: -1 }).
  */
 async function listProjectTasks(db, projectId, status) {
-  // TODO: implement listProjectTasks
+  const filter = { projectId };
+  if (status) filter.status = status;
+
+  return await db.collection('tasks')
+    .find(filter)
+    .sort({ priority: -1, createdAt: -1 })
+    .toArray();
 }
 
 /**
@@ -296,6 +311,7 @@ async function deleteTask(db, taskId) {
  */
 async function searchNotes(db, ownerId, tags, projectId) {
   // TODO: implement searchNotes
+  
 }
 
 /**
@@ -333,7 +349,6 @@ async function searchNotes(db, ownerId, tags, projectId) {
  */
 async function projectTaskSummary(db, ownerId) {
   // TODO: implement projectTaskSummary
-
 }
 
 /**
