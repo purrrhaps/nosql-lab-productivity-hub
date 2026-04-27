@@ -186,7 +186,15 @@ async function listProjectTasks(db, projectId, status) {
  * Hint: insertOne. Apply defaults for any missing optional fields.
  */
 async function createTask(db, taskData) {
-  // TODO: implement createTask
+  const result = await db.collection('tasks').insertOne({
+    ...taskData,
+    priority: taskData.priority ?? 1,
+    tags: taskData.tags ?? [],
+    subtasks: taskData.subtasks ?? [],
+    status: 'todo',
+    createdAt: new Date()
+  });
+  return { insertedId: result.insertedId };
 }
 
 /**
@@ -202,7 +210,11 @@ async function createTask(db, taskData) {
  * Hint: updateOne + $set.
  */
 async function updateTaskStatus(db, taskId, newStatus) {
-  // TODO: implement updateTaskStatus
+  const result = await db.collection('tasks').updateOne(
+    { _id: taskId },
+    { $set: { status: newStatus } }
+  );
+  return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount };
 }
 
 /**
@@ -222,7 +234,11 @@ async function updateTaskStatus(db, taskId, newStatus) {
  * Hint: which array operator silently skips duplicates? It is NOT $push.
  */
 async function addTaskTag(db, taskId, tag) {
-  // TODO: implement addTaskTag
+  const result = await db.collection('tasks').updateOne(
+    { _id: taskId },
+    { $addToSet: { tags: tag } }
+  );
+  return { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount };
 }
 
 /**
@@ -243,7 +259,7 @@ async function addTaskTag(db, taskId, tag) {
  */
 async function removeTaskTag(db, taskId, tag) {
   // TODO: implement removeTaskTag
-}
+  }
 
 /**
  * Query 11: toggleSubtask
@@ -311,7 +327,6 @@ async function deleteTask(db, taskId) {
  */
 async function searchNotes(db, ownerId, tags, projectId) {
   // TODO: implement searchNotes
-  
 }
 
 /**
@@ -349,6 +364,7 @@ async function searchNotes(db, ownerId, tags, projectId) {
  */
 async function projectTaskSummary(db, ownerId) {
   // TODO: implement projectTaskSummary
+
 }
 
 /**
@@ -381,7 +397,7 @@ async function projectTaskSummary(db, ownerId) {
  */
 async function recentActivityFeed(db, ownerId) {
   // TODO: implement recentActivityFeed
-
+ 
 }
 
 // =============================================================================
