@@ -35,17 +35,20 @@ const { ObjectId } = require('mongodb');
  * @returns {Promise<{ insertedId: ObjectId }>}
  *
  * Expected behaviour:
- *   - If email is unique → returns { insertedId: <new ObjectId> }
- *   - If email already exists → MongoDB throws a duplicate-key error
- *     (the route catches this and shows "email taken")
+ * - If email is unique → returns { insertedId: <new ObjectId> }
+ * - If email already exists → MongoDB throws a duplicate-key error
+ * (the route catches this and shows "email taken")
  *
  * The document you insert should also include `createdAt: new Date()`.
  *
  * Hint: insertOne. Nothing fancy.
  */
 async function signupUser(db, userData) {
-  // TODO: implement
-  throw new Error('signupUser not implemented');
+  const result = await db.collection('users').insertOne({
+    ...userData,
+    createdAt: new Date()
+  });
+  return { insertedId: result.insertedId };
 }
 
 /**
@@ -58,14 +61,13 @@ async function signupUser(db, userData) {
  * @returns {Promise<Object|null>}
  *
  * Expected output shape:
- *   { _id: ObjectId, email: "...", passwordHash: "...", name: "...", createdAt: Date }
- *   or null if no user with that email exists.
+ * { _id: ObjectId, email: "...", passwordHash: "...", name: "...", createdAt: Date }
+ * or null if no user with that email exists.
  *
  * Hint: findOne with an exact-match filter.
  */
 async function loginFindUser(db, email) {
-  // TODO: implement
-  throw new Error('loginFindUser not implemented');
+  return await db.collection('users').findOne({ email });
 }
 
 /**
@@ -78,14 +80,16 @@ async function loginFindUser(db, email) {
  * @returns {Promise<Array<Object>>}
  *
  * Expected output: array of project documents, each shaped like:
- *   { _id, ownerId, name, archived: false, createdAt, ... }
- *   sorted by createdAt descending.
+ * { _id, ownerId, name, archived: false, createdAt, ... }
+ * sorted by createdAt descending.
  *
  * Hint: find with two filter conditions, then .sort().toArray().
  */
 async function listUserProjects(db, ownerId) {
-  // TODO: implement
-  throw new Error('listUserProjects not implemented');
+  return await db.collection('projects')
+    .find({ ownerId, archived: false })
+    .sort({ createdAt: -1 })
+    .toArray();
 }
 
 /**
@@ -102,8 +106,7 @@ async function listUserProjects(db, ownerId) {
  * Hint: insertOne again — just remember to add the defaults yourself.
  */
 async function createProject(db, projectData) {
-  // TODO: implement
-  throw new Error('createProject not implemented');
+  // TODO: implement createProject
 }
 
 /**
@@ -116,14 +119,13 @@ async function createProject(db, projectData) {
  * @returns {Promise<{ matchedCount: number, modifiedCount: number }>}
  *
  * Expected behaviour:
- *   - matched and modified should both be 1 on success
- *   - matched=0 if projectId doesn't exist
+ * - matched and modified should both be 1 on success
+ * - matched=0 if projectId doesn't exist
  *
  * Hint: updateOne with the $set operator.
  */
 async function archiveProject(db, projectId) {
-  // TODO: implement
-  throw new Error('archiveProject not implemented');
+  // TODO: implement archiveProject
 }
 
 /**
@@ -135,17 +137,16 @@ async function archiveProject(db, projectId) {
  * @param {Db} db
  * @param {ObjectId} projectId
  * @param {string} [status]  — optional. One of "todo" | "in-progress" | "done".
- *                             If omitted, return tasks of ALL statuses.
+ * If omitted, return tasks of ALL statuses.
  * @returns {Promise<Array<Object>>}
  *
  * Expected output: array of task documents.
  *
  * Hint: build the filter object dynamically. Only add the `status` key when
- *       the caller passed one. Then chain .sort({ priority: -1, createdAt: -1 }).
+ * the caller passed one. Then chain .sort({ priority: -1, createdAt: -1 }).
  */
 async function listProjectTasks(db, projectId, status) {
-  // TODO: implement
-  throw new Error('listProjectTasks not implemented');
+  // TODO: implement listProjectTasks
 }
 
 /**
@@ -155,12 +156,12 @@ async function listProjectTasks(db, projectId, status) {
  *
  * @param {Db} db
  * @param {{
- *   ownerId: ObjectId,
- *   projectId: ObjectId,
- *   title: string,
- *   priority?: number,         // default 1
- *   tags?: string[],           // default []
- *   subtasks?: Array<{title: string, done: boolean}>  // default []
+ * ownerId: ObjectId,
+ * projectId: ObjectId,
+ * title: string,
+ * priority?: number,           // default 1
+ * tags?: string[],             // default []
+ * subtasks?: Array<{title: string, done: boolean}>  // default []
  * }} taskData
  * @returns {Promise<{ insertedId: ObjectId }>}
  *
@@ -170,8 +171,7 @@ async function listProjectTasks(db, projectId, status) {
  * Hint: insertOne. Apply defaults for any missing optional fields.
  */
 async function createTask(db, taskData) {
-  // TODO: implement
-  throw new Error('createTask not implemented');
+  // TODO: implement createTask
 }
 
 /**
@@ -187,8 +187,7 @@ async function createTask(db, taskData) {
  * Hint: updateOne + $set.
  */
 async function updateTaskStatus(db, taskId, newStatus) {
-  // TODO: implement
-  throw new Error('updateTaskStatus not implemented');
+  // TODO: implement updateTaskStatus
 }
 
 /**
@@ -202,14 +201,13 @@ async function updateTaskStatus(db, taskId, newStatus) {
  * @returns {Promise<{ matchedCount: number, modifiedCount: number }>}
  *
  * Expected behaviour:
- *   - If tag is new → modifiedCount = 1, tags array gains the new entry
- *   - If tag is already present → modifiedCount = 0 (no duplicate added)
+ * - If tag is new → modifiedCount = 1, tags array gains the new entry
+ * - If tag is already present → modifiedCount = 0 (no duplicate added)
  *
  * Hint: which array operator silently skips duplicates? It is NOT $push.
  */
 async function addTaskTag(db, taskId, tag) {
-  // TODO: implement
-  throw new Error('addTaskTag not implemented');
+  // TODO: implement addTaskTag
 }
 
 /**
@@ -223,14 +221,13 @@ async function addTaskTag(db, taskId, tag) {
  * @returns {Promise<{ matchedCount: number, modifiedCount: number }>}
  *
  * Expected behaviour:
- *   - If tag was present → modifiedCount = 1
- *   - If tag wasn't present → modifiedCount = 0
+ * - If tag was present → modifiedCount = 1
+ * - If tag wasn't present → modifiedCount = 0
  *
  * Hint: $pull.
  */
 async function removeTaskTag(db, taskId, tag) {
-  // TODO: implement
-  throw new Error('removeTaskTag not implemented');
+  // TODO: implement removeTaskTag
 }
 
 /**
@@ -246,22 +243,21 @@ async function removeTaskTag(db, taskId, tag) {
  * @returns {Promise<{ matchedCount: number, modifiedCount: number }>}
  *
  * Example: a task has subtasks: [
- *   { title: "Draft outline", done: false },
- *   { title: "Write intro",  done: false }
+ * { title: "Draft outline", done: false },
+ * { title: "Write intro",  done: false }
  * ]
  * Calling toggleSubtask(db, taskId, "Write intro", true) should produce:
- *   [
- *     { title: "Draft outline", done: false },
- *     { title: "Write intro",  done: true  }
- *   ]
+ * [
+ * { title: "Draft outline", done: false },
+ * { title: "Write intro",  done: true  }
+ * ]
  *
  * Hint: this is the POSITIONAL OPERATOR scenario. Your filter must
- *       reference the subtask by title (so Mongo knows which array element
- *       matched), and your $set path uses `subtasks.$.done`.
+ * reference the subtask by title (so Mongo knows which array element
+ * matched), and your $set path uses `subtasks.$.done`.
  */
 async function toggleSubtask(db, taskId, subtaskTitle, newDone) {
-  // TODO: implement
-  throw new Error('toggleSubtask not implemented');
+  // TODO: implement toggleSubtask
 }
 
 /**
@@ -276,8 +272,7 @@ async function toggleSubtask(db, taskId, subtaskTitle, newDone) {
  * Hint: deleteOne.
  */
 async function deleteTask(db, taskId) {
-  // TODO: implement
-  throw new Error('deleteTask not implemented');
+  // TODO: implement deleteTask
 }
 
 /**
@@ -288,20 +283,19 @@ async function deleteTask(db, taskId) {
  *
  * @param {Db} db
  * @param {ObjectId} ownerId
- * @param {string[]} tags        — match notes whose tags array contains
- *                                 at least one of these
+ * @param {string[]} tags         — match notes whose tags array contains
+ * at least one of these
  * @param {ObjectId} [projectId] — optional. If given, restrict to this project.
  * @returns {Promise<Array<Object>>}
  *
  * Expected output: array of note documents matching the filter,
- *                  sorted by createdAt descending.
+ * sorted by createdAt descending.
  *
  * Hint: the operator that says "field's value is one of these" is $in.
- *       Build the filter conditionally based on whether projectId was passed.
+ * Build the filter conditionally based on whether projectId was passed.
  */
 async function searchNotes(db, ownerId, tags, projectId) {
-  // TODO: implement
-  throw new Error('searchNotes not implemented');
+  // TODO: implement searchNotes
 }
 
 /**
@@ -315,31 +309,31 @@ async function searchNotes(db, ownerId, tags, projectId) {
  * @returns {Promise<Array<Object>>}
  *
  * Expected output shape — one document per project:
- *   {
- *     _id: ObjectId,             // the projectId
- *     projectName: "Final Year Project",
- *     todo: 3,
- *     inProgress: 2,
- *     done: 5,
- *     total: 10
- *   }
+ * {
+ * _id: ObjectId,             // the projectId
+ * projectName: "Final Year Project",
+ * todo: 3,
+ * inProgress: 2,
+ * done: 5,
+ * total: 10
+ * }
  *
  * Pipeline outline:
- *   1. $match    — only this user's tasks
- *   2. $group    — group by projectId; use $sum with $cond to count per status
- *                  e.g. todo: { $sum: { $cond: [{ $eq: ["$status", "todo"] }, 1, 0] } }
- *   3. $lookup   — join "projects" collection to get the name. Use:
- *                    from: "projects", localField: "_id",
- *                    foreignField: "_id", as: "project"
- *   4. $unwind   — flatten the joined "project" array (it has at most 1 element)
- *   5. $project  — reshape into the expected output above
+ * 1. $match    — only this user's tasks
+ * 2. $group    — group by projectId; use $sum with $cond to count per status
+ * e.g. todo: { $sum: { $cond: [{ $eq: ["$status", "todo"] }, 1, 0] } }
+ * 3. $lookup   — join "projects" collection to get the name. Use:
+ * from: "projects", localField: "_id",
+ * foreignField: "_id", as: "project"
+ * 4. $unwind   — flatten the joined "project" array (it has at most 1 element)
+ * 5. $project  — reshape into the expected output above
  *
  * Hint: $lookup returns an ARRAY (because joins can match many).
- *       $unwind turns a 1-element array into the element itself.
+ * $unwind turns a 1-element array into the element itself.
  */
 async function projectTaskSummary(db, ownerId) {
-  // TODO: implement
-  throw new Error('projectTaskSummary not implemented');
+  // TODO: implement projectTaskSummary
+
 }
 
 /**
@@ -353,26 +347,26 @@ async function projectTaskSummary(db, ownerId) {
  * @returns {Promise<Array<Object>>}
  *
  * Expected output — 10 task documents (or fewer if user has < 10), each shaped:
- *   {
- *     _id, title, status, priority, createdAt,
- *     projectId,
- *     projectName: "..."   // joined in
- *   }
+ * {
+ * _id, title, status, priority, createdAt,
+ * projectId,
+ * projectName: "..."   // joined in
+ * }
  *
  * Pipeline outline:
- *   1. $match    — only this user's tasks
- *   2. $sort     — newest first
- *   3. $limit    — 10
- *   4. $lookup   — join "projects" to get the name
- *   5. $unwind   — flatten the joined array
- *   6. $project  — keep the fields above (drop the rest)
+ * 1. $match    — only this user's tasks
+ * 2. $sort     — newest first
+ * 3. $limit    — 10
+ * 4. $lookup   — join "projects" to get the name
+ * 5. $unwind   — flatten the joined array
+ * 6. $project  — keep the fields above (drop the rest)
  *
  * Hint: putting $sort and $limit BEFORE $lookup is intentional —
- *       you only want to look up 10 projects, not all of them.
+ * you only want to look up 10 projects, not all of them.
  */
 async function recentActivityFeed(db, ownerId) {
-  // TODO: implement
-  throw new Error('recentActivityFeed not implemented');
+  // TODO: implement recentActivityFeed
+
 }
 
 // =============================================================================
